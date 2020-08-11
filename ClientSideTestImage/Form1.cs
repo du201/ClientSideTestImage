@@ -21,6 +21,7 @@ namespace ClientSideTestImage
     {
         FilterInfoCollection filterInfoCollection;
         VideoCaptureDevice videoCaptureDevice;
+        RequestSocket client;
         //MemoryStream stream;
         public WebCam()
         {
@@ -32,7 +33,8 @@ namespace ClientSideTestImage
             }
             cboCamera.SelectedIndex = 0;
             videoCaptureDevice = new VideoCaptureDevice();
-            //stream = new MemoryStream();
+            client = new RequestSocket();
+            client.Connect("tcp://localhost:5555");
 
         }
         private void btnStart_Click(object sender, EventArgs e)
@@ -44,16 +46,21 @@ namespace ClientSideTestImage
 
         private void VideoCaptureDevice_NewFrame(object sender, NewFrameEventArgs eventArgs)
         {
-            Bitmap image = (Bitmap)eventArgs.Frame.Clone();
-            pic.Image = image;
+            Bitmap imageRender = (Bitmap)eventArgs.Frame.Clone();
+            Bitmap imageSend = (Bitmap)eventArgs.Frame.Clone();
+            pic.Image = imageRender;
             //image.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
             //byte[] bytes = stream.ToArray();
+            client.SendFrame(ImageToByte(imageSend));
+            var message = client.ReceiveFrameString();
+            /*
             using (var client = new RequestSocket())
             {
                 client.Connect("tcp://localhost:5555");
-                client.SendFrame(image);
+                client.SendFrame(ImageToByte(imageSend));
                 var message = client.ReceiveFrameString();
             }
+            */
         }
 
         private void btnClose_MouseClick(object sender, MouseEventArgs e)
@@ -64,13 +71,13 @@ namespace ClientSideTestImage
             }
         }
 
-        /*
+        
         public byte[] ImageToByte(Image img)
         {
             ImageConverter converter = new ImageConverter();
             return (byte[])converter.ConvertTo(img, typeof(byte[]));
         }
-        */
+        
 
         /*
         private void btnClose_Click(object sender, EventArgs e)
